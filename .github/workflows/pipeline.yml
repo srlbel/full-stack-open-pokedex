@@ -20,10 +20,10 @@ jobs:
           id: check_skip
           run: |
             COMMIT_MESSAGE=""
-            if [[ "${{ github.event_name}}" == "pull request"]]; then
-              COMMIT_MESSAGE=${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
-            elif [[ "${{ github.event_name}}" == "push" ]]; then
-              COMMIT_MESSAGE${{ github.event.head_commit.message }}
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              COMMIT_MESSAGE="${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}"
+            elif [[ "${{ github.event_name }}" == "push" ]]; then
+              COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
             fi
 
             if [[ "$COMMIT_MESSAGE" == *"#skip"* ]]; then

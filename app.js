@@ -2,9 +2,15 @@ import express from 'express'
 const app = express()
 
 // get the port from env variable
-const PORT = Node.process.env.PORT || 5000
+// eslint-disable-next-line no-undef
+const PORT = process.env.PORT || 5000
 
 app.use(express.static('dist'))
+
+app.get('/health', (req, res) => {
+  // eslint-disable-next-line no-constant-condition
+  res.send('ok')
+})
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

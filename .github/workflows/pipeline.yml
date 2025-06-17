@@ -31,7 +31,7 @@ jobs:
               echo "Commit message contains #skip. Skipping deployment and tagging."
             else
               echo "::set-output name=should_skip::false"
-              echo "Commit message does not contain #skip."
+              echo "Commit message does not contain #skip. tag"
             fi
 
 

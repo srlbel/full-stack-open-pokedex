@@ -11,8 +11,30 @@ on:
 jobs:
   simple_deployment_pipeline:
       runs-on: ubuntu-24.04
+      outputs:
+        should_skip: ${{ steps.check_skip.outputs.should_skip }}
       steps:
         - uses: actions/checkout@v4
+
+        - name: check for skip in commit message
+          id: check_skip
+          run: |
+            COMMIT_MESSAGE=""
+            if [[ "${{ github.event_name}}" == "pull request"]]; then
+              COMMIT_MESSAGE=${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
+            elif [[ "${{ github.event_name}}" == "push" ]]; then
+              COMMIT_MESSAGE${{ github.event.head_commit.message }}
+            fi
+
+            if [[ "$COMMIT_MESSAGE" == *"#skip"* ]]; then
+              echo "::set-output name=should_skip::true"
+              echo "Commit message contains #skip. Skipping deployment and tagging."
+            else
+              echo "::set-output name=should_skip::false"
+              echo "Commit message does not contain #skip."
+            fi
+
+
         - uses: actions/setup-node@v4
           with:
             node-version: '20'
@@ -32,12 +54,13 @@ jobs:
             retention-days: 30
 
         - name: Trigger Deployment
-          if: ${{ github.event_name == 'push' }}
+          if: ${{ github.event_name == 'push' && steps.check_skip.outputs.should_skip == 'false' }}
           run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVER_ID }}?key=${{ secrets.RENDER_API_KEY }}
 
   tag_release:
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-24.04
+    if: ${{ needs.simple_deployment_pipeline.outputs.should_skip == 'false' }}
     steps:
       - uses: actions/checkout@v4
 
